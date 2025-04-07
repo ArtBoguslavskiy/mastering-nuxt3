@@ -2,6 +2,9 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -21,6 +24,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@prisma/client": "^6.5.0",
     "@tailwindcss/typography": "^0.5.16"
   }
 }
