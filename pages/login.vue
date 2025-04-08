@@ -6,8 +6,6 @@ const user = useSupabaseUser();
 
 watchEffect(async () => {
   if (user.value) {
-    console.log("User is logged in");
-    console.log(query.redirectTo);
     await navigateTo(query.redirectTo as string, {
       replace: true,
     });

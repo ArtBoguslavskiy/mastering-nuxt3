@@ -1,8 +1,14 @@
-<script setup lang="ts">
+<script setup>
+import { useCourseProgress } from "~/stores/courseProgress.ts";
 const course = await useCourse();
+const user = useSupabaseUser();
 const route = useRoute();
 const { chapterSlug, lessonSlug } = route.params;
-const lesson = await useLesson(chapterSlug as string, lessonSlug as string);
+const lesson = await useLesson(chapterSlug, lessonSlug);
+const store = useCourseProgress();
+const { initialize, toggleComplete } = store;
+
+initialize();
 
 definePageMeta({
   middleware: [
@@ -39,77 +45,50 @@ definePageMeta({
   ],
 });
 
+// Check if the current lesson is completed
+const isCompleted = computed(() => {
+  return store.progress?.[chapterSlug]?.[lessonSlug] || false;
+});
+
 const chapter = computed(() => {
   return course.value.chapters.find(
-    (lesson) => lesson.slug === route.params.chapterSlug
+    (chapter) => chapter.slug === route.params.chapterSlug
   );
 });
 
 const title = computed(() => {
-  return `${lesson.value?.title} - ${course.value.title}`;
+  return `${lesson.value.title} - ${course.value.title}`;
 });
-
-useHead({ title });
-
-const progress = useLocalStorage<boolean[][]>("progress", []);
-
-const isLessonComplete = computed(() => {
-  if (!lesson.value || !chapter.value) {
-    return false;
-  }
-
-  if (!progress.value[chapter.value.number - 1]) {
-    return false;
-  }
-
-  if (!progress.value[chapter.value.number - 1][lesson.value.number - 1]) {
-    return false;
-  }
-
-  return progress.value[chapter.value.number - 1][lesson.value.number - 1];
+useHead({
+  title,
 });
-
-const toggleComplete = () => {
-  if (!progress.value[chapter.value!.number - 1]) {
-    if (chapter.value) {
-      progress.value[chapter.value.number - 1] = [];
-    }
-  }
-
-  if (!lesson.value || !chapter.value) {
-    return false;
-  }
-
-  progress.value[chapter.value.number - 1][lesson.value.number - 1] =
-    !isLessonComplete.value;
-};
 </script>
 
 <template>
   <div>
     <p class="mt-0 uppercase font-bold text-slate-400 mb-1">
-      Lesson {{ chapter?.number }} - {{ lesson?.number }}
+      Lesson {{ chapter.number }} - {{ lesson.number }}
     </p>
-    <h2 class="my-0">{{ lesson?.title }}</h2>
+    <h2 class="my-0">{{ lesson.title }}</h2>
     <div class="flex space-x-4 mt-2 mb-8">
       <NuxtLink
-        v-if="lesson?.sourceUrl"
+        v-if="lesson.sourceUrl"
         class="font-normal text-md text-gray-500"
         :to="lesson.sourceUrl">
         Download Source Code
       </NuxtLink>
       <NuxtLink
-        v-if="lesson?.downloadUrl"
+        v-if="lesson.downloadUrl"
         class="font-normal text-md text-gray-500"
         :to="lesson.downloadUrl">
         Download Video
       </NuxtLink>
     </div>
-    <VideoPlayer v-if="lesson?.videoId" :video-id="lesson.videoId" />
-    <p>{{ lesson?.text }}</p>
-
+    <VideoPlayer v-if="lesson.videoId" :video-id="lesson.videoId" />
+    <p>{{ lesson.text }}</p>
     <LessonCompleteButton
-      :model-value="isLessonComplete"
+      v-if="user"
+      :model-value="isCompleted"
       @update:model-value="toggleComplete" />
   </div>
 </template>
