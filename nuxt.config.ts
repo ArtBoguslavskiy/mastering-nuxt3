@@ -4,12 +4,19 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
-  modules: [
-    "@nuxt/eslint",
-    "@vueuse/nuxt",
-    "@nuxtjs/supabase",
-    "@pinia/nuxt",
-  ],
+  runtimeConfig: {
+    stripeSecret: "",
+    stripeWebhookSecret: "",
+    public: {
+      stripeKey: "",
+    },
+  },
+  nitro: {
+    prerender: {
+      routes: ["/landing"],
+    },
+  },
+  modules: ["@nuxt/eslint", "@vueuse/nuxt", "@nuxtjs/supabase", "@pinia/nuxt"],
   css: ["~/assets/css/main.css"],
   supabase: {
     redirectOptions: {
